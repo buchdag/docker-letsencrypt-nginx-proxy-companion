@@ -12,6 +12,7 @@ echo "Starting $LETSENCRYPT_CONTAINER_NAME container."
 case $1 in
   2containers)
     run_le_container $LETSENCRYPT_CONTAINER_NAME $NGINX_CONTAINER_NAME $boulder_ip
+    wait_for_dhparam $LETSENCRYPT_CONTAINER_NAME
     ;;
   3containers)
     run_le_container $LETSENCRYPT_CONTAINER_NAME $NGINX_CONTAINER_NAME $boulder_ip
