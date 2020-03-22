@@ -202,6 +202,16 @@ function update_certs {
 
         [[ "$DEBUG" == true ]] && params_d_arr+=(-v)
         [[ $REUSE_PRIVATE_KEYS == true ]] && params_d_arr+=(--reuse_key)
+
+        # Alternative trusted root CA path, used for test with Pebble
+        if [[ -n "${CA_BUNDLE// }" ]]; then
+            if [[ -f "$CA_BUNDLE" ]]; then
+                params_d_arr+=(--ca_bundle "$CA_BUNDLE")
+                [[ "$DEBUG" == true ]] && echo "Debug: simp_le will use $CA_BUNDLE as trusted root CA."
+            else
+                echo "Warning: the path to the alternate CA bundle ($CA_BUNDLE) is not valid."
+            fi
+        fi
         
         min_validity="LETSENCRYPT_${cid}_MIN_VALIDITY"
         min_validity="${!min_validity:-"<no value>"}"
