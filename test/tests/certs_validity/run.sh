@@ -31,7 +31,7 @@ docker run --rm -d \
   --name "${domains[0]}" \
   -e "VIRTUAL_HOST=${domains[0]}" \
   -e "LETSENCRYPT_HOST=${domains[0]}" \
-  --network boulder_bluenet \
+  --network acme_net \
   nginx:alpine > /dev/null && echo "Started test web server for ${domains[0]}"
 # Manual validity (same as default)
 docker run --rm -d \
@@ -39,15 +39,15 @@ docker run --rm -d \
   -e "VIRTUAL_HOST=${domains[1]}" \
   -e "LETSENCRYPT_HOST=${domains[1]}" \
   -e "LETSENCRYPT_MIN_VALIDITY=2592000" \
-  --network boulder_bluenet \
+  --network acme_net \
   nginx:alpine > /dev/null && echo "Started test web server for ${domains[1]}"
-# Manual validity (few seconds shy of MIN_VALIDITY_CAP=7603200)
+# Manual validity (five second shy of Pebble's MIN_VALIDITY_CAP=157766400)
 docker run --rm -d \
   --name "${domains[2]}" \
   -e "VIRTUAL_HOST=${domains[2]}" \
   -e "LETSENCRYPT_HOST=${domains[2]}" \
-  -e "LETSENCRYPT_MIN_VALIDITY=7603190" \
-  --network boulder_bluenet \
+  -e "LETSENCRYPT_MIN_VALIDITY=157766395" \
+  --network acme_net \
   nginx:alpine > /dev/null && echo "Started test web server for ${domains[2]}"
 
 # Wait for symlinks and grab the expiration times of the certificates

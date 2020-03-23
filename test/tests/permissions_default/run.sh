@@ -36,8 +36,8 @@ wait_for_symlink "${domains[0]}" "$le_container_name"
 # Array of folder paths to test
 folders=( \
   [0]="/etc/nginx/certs/accounts" \
-  [1]="/etc/nginx/certs/accounts/boulder:4001" \
-  [2]="/etc/nginx/certs/accounts/boulder:4001/directory" \
+  [1]="/etc/nginx/certs/accounts/pebble:14000" \
+  [2]="/etc/nginx/certs/accounts/pebble:14000/dir" \
   [3]="/etc/nginx/certs/${domains[0]}" \
   )
 
@@ -78,8 +78,8 @@ symlinks=( \
 # Array of private file paths to test
 private_files=( \
   [0]="/etc/nginx/certs/default.key" \
-  [1]="/etc/nginx/certs/accounts/boulder:4001/directory/default_key.json" \
-  [2]="/etc/nginx/certs/accounts/boulder:4001/directory/default_reg.json" \
+  [1]="/etc/nginx/certs/accounts/pebble:14000/dir/default_key.json" \
+  [2]="/etc/nginx/certs/accounts/pebble:14000/dir/default_reg.json" \
   [3]="/etc/nginx/certs/${domains[0]}/key.pem" \
   )
 

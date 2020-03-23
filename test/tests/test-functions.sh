@@ -21,12 +21,15 @@ function run_le_container {
     --name "$name" \
     --volumes-from $NGINX_CONTAINER_NAME \
     --volume /var/run/docker.sock:/var/run/docker.sock:ro \
+    --volume "${TRAVIS_BUILD_DIR}/pebble.minica.pem:/pebble.minica.pem" \
     $cli_args \
     --env "DHPARAM_BITS=256" \
     --env "DEBUG=true" \
-    --env "ACME_CA_URI=http://boulder:4001/directory" \
+    --env "ACME_CA_URI=https://pebble:14000/dir" \
+    --env "CA_BUNDLE=/pebble.minica.pem" \
+    --env "MAX_CERT_LIFETIME=157939200" \
     --label com.github.jrcs.letsencrypt_nginx_proxy_companion.test_suite \
-    --network boulder_bluenet \
+    --network acme_net \
     "$image" > /dev/null && echo "Started letsencrypt container for test ${name%%_2*}"
 }
 export -f run_le_container

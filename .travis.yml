@@ -5,6 +5,8 @@ language: shell
 
 addons:
   hosts:
+    - pebble
+    - pebble-challtestsrv
     - le1.wtf
     - le2.wtf
     - le3.wtf
@@ -49,7 +51,7 @@ install:
 
 before_script:
   - git clone https://github.com/docker-library/official-images.git official-images
-  - test/setup/setup-boulder.sh
+  - test/setup/setup-pebble.sh
   - test/setup/setup-nginx-proxy.sh
   - docker pull nginx:alpine
 
