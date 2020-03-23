@@ -31,10 +31,8 @@ docker run --rm -d \
   --network boulder_bluenet \
   nginx:alpine > /dev/null && echo "Started test web server for ${domains[0]}"
 
-# Wait for a symlink at /etc/nginx/certs/${domains[0]}.crt
-# Grab the expiration time of the certificate
-wait_for_symlink "${domains[0]}" "$le_container_name"
-first_cert_expire="$(get_cert_expiration_epoch "${domains[0]}" "$le_container_name")"
+# Wait for a symlink at /etc/nginx/certs/${domains[0]}.crt and grab the expiration time of the certificate
+wait_for_symlink "${domains[0]}" "$le_container_name" && first_cert_expire="$(get_cert_expiration_epoch "${domains[0]}" "$le_container_name")"
 
 # Just to be sure
 sleep 5
@@ -42,7 +40,7 @@ sleep 5
 # Issue a forced renewal
 # Grab the expiration time of the renewed certificate
 docker exec "$le_container_name" /app/force_renew > /dev/null 2>&1
-second_cert_expire="$(get_cert_expiration_epoch "${domains[0]}" "$le_container_name")"
+wait_for_symlink "${domains[0]}" "$le_container_name" && second_cert_expire="$(get_cert_expiration_epoch "${domains[0]}" "$le_container_name")"
 
 if [[ $second_cert_expire -gt $first_cert_expire ]]; then
   echo "Certificate for ${domains[0]} was correctly renewed."

@@ -50,14 +50,10 @@ docker run --rm -d \
   --network boulder_bluenet \
   nginx:alpine > /dev/null && echo "Started test web server for ${domains[2]}"
 
-# Wait for a symlinks
-wait_for_symlink "${domains[0]}" "$le_container_name"
-wait_for_symlink "${domains[1]}" "$le_container_name"
-wait_for_symlink "${domains[2]}" "$le_container_name"
-# Grab the expiration times of the certificates
-first_cert_expire_1="$(get_cert_expiration_epoch "${domains[0]}" "$le_container_name")"
-first_cert_expire_2="$(get_cert_expiration_epoch "${domains[1]}" "$le_container_name")"
-first_cert_expire_3="$(get_cert_expiration_epoch "${domains[2]}" "$le_container_name")"
+# Wait for symlinks and grab the expiration times of the certificates
+wait_for_symlink "${domains[0]}" "$le_container_name" && first_cert_expire_1="$(get_cert_expiration_epoch "${domains[0]}" "$le_container_name")"
+wait_for_symlink "${domains[1]}" "$le_container_name" && first_cert_expire_2="$(get_cert_expiration_epoch "${domains[1]}" "$le_container_name")"
+wait_for_symlink "${domains[2]}" "$le_container_name" && first_cert_expire_3="$(get_cert_expiration_epoch "${domains[2]}" "$le_container_name")"
 
 # Wait for ${domains[2]} set certificate validity to expire
 sleep 10
@@ -66,9 +62,9 @@ sleep 10
 docker exec "$le_container_name" /bin/bash -c "source /app/letsencrypt_service --source-only; update_certs" > /dev/null 2>&1
 
 # Grab the new expiration times of the certificates
-second_cert_expire_1="$(get_cert_expiration_epoch "${domains[0]}" "$le_container_name")"
-second_cert_expire_2="$(get_cert_expiration_epoch "${domains[1]}" "$le_container_name")"
-second_cert_expire_3="$(get_cert_expiration_epoch "${domains[2]}" "$le_container_name")"
+wait_for_symlink "${domains[0]}" "$le_container_name" && second_cert_expire_1="$(get_cert_expiration_epoch "${domains[0]}" "$le_container_name")"
+wait_for_symlink "${domains[1]}" "$le_container_name" && second_cert_expire_2="$(get_cert_expiration_epoch "${domains[1]}" "$le_container_name")"
+wait_for_symlink "${domains[2]}" "$le_container_name" && second_cert_expire_3="$(get_cert_expiration_epoch "${domains[2]}" "$le_container_name")"
 
 if [[ $second_cert_expire_1 -eq $first_cert_expire_1 ]]; then
   echo "Certificate for ${domains[0]} was not renewed."

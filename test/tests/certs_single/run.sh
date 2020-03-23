@@ -40,12 +40,12 @@ for domain in "${domains[@]}"; do
 
   # Wait for a symlink at /etc/nginx/certs/$domain.crt
   # then grab the certificate in text form from the file ...
-  wait_for_symlink "$domain" "$le_container_name"
-  created_cert="$(docker exec "$le_container_name" \
-    sh -c "openssl x509 -in "/etc/nginx/certs/${domain}/cert.pem" -text -noout")"
+  wait_for_symlink "$domain" "$le_container_name" && \
+    created_cert="$(docker exec "$le_container_name" \
+      sh -c "openssl x509 -in "/etc/nginx/certs/${domain}/cert.pem" -text -noout")" && \
   # ... as well as the certificate fingerprint.
-  created_cert_fingerprint="$(docker exec "$le_container_name" \
-    sh -c "openssl x509 -in "/etc/nginx/certs/${domain}/cert.pem" -fingerprint -noout")"
+    created_cert_fingerprint="$(docker exec "$le_container_name" \
+      sh -c "openssl x509 -in "/etc/nginx/certs/${domain}/cert.pem" -fingerprint -noout")"
 
   # Check if the domain is on the certificate.
   if grep -q "$domain" <<< "$created_cert"; then
@@ -55,10 +55,10 @@ for domain in "${domains[@]}"; do
   fi
 
   # Wait for a connection to https://domain then grab the served certificate fingerprint.
-  wait_for_conn --domain "$domain"
-  served_cert_fingerprint="$(echo \
-    | openssl s_client -showcerts -servername "$domain" -connect "$domain:443" 2>/dev/null \
-    | openssl x509 -fingerprint -noout)"
+  wait_for_conn --domain "$domain" && \
+    served_cert_fingerprint="$(echo \
+      | openssl s_client -showcerts -servername "$domain" -connect "$domain:443" 2>/dev/null \
+      | openssl x509 -fingerprint -noout)"
 
   # Compare fingerprints from the cert on file and what we got from the https connection.
   # If not identical, display a full diff.

@@ -43,9 +43,13 @@ folders=( \
 
 # Test folder paths
 for folder in  "${folders[@]}"; do
-  ownership_and_permissions="$(docker exec "$le_container_name" stat -c %u:%g:%a "$folder")"
-  if [[ "$ownership_and_permissions" != 0:0:755 ]]; then
-    echo "Expected 0:0:755 on ${folder}, found ${ownership_and_permissions}."
+  if docker exec "$le_container_name" [ -d "$folder" ]; then
+    ownership_and_permissions="$(docker exec "$le_container_name" stat -c %u:%g:%a "$folder")"
+    if [[ "$ownership_and_permissions" != 0:0:755 ]]; then
+      echo "Expected 0:0:755 on ${folder}, found ${ownership_and_permissions}."
+    fi
+  else
+    echo "$folder does not exist."
   fi
 done
 
@@ -61,9 +65,13 @@ symlinks=( \
 
   # Test symlinks paths
   for symlink in  "${symlinks[@]}"; do
-    ownership="$(docker exec "$le_container_name" stat -c %u:%g "$symlink")"
-    if [[ "$ownership" != 0:0 ]]; then
-      echo "Expected 0:0 on ${symlink}, found ${ownership}."
+    if docker exec "$le_container_name" [ -L "$symlink" ]; then 
+      ownership="$(docker exec "$le_container_name" stat -c %u:%g "$symlink")"
+      if [[ "$ownership" != 0:0 ]]; then
+        echo "Expected 0:0 on ${symlink}, found ${ownership}."
+      fi
+    else
+      echo "$symlink does not exist."
     fi
   done
 
@@ -77,9 +85,13 @@ private_files=( \
 
 # Test private file paths
 for file in  "${private_files[@]}"; do
-  ownership_and_permissions="$(docker exec "$le_container_name" stat -c %u:%g:%a "$file")"
-  if [[ "$ownership_and_permissions" != 0:0:644 ]]; then
-    echo "Expected 0:0:644 on ${file}, found ${ownership_and_permissions}."
+  if docker exec "$le_container_name" [ -f "$file" ]; then
+    ownership_and_permissions="$(docker exec "$le_container_name" stat -c %u:%g:%a "$file")"
+    if [[ "$ownership_and_permissions" != 0:0:644 ]]; then
+      echo "Expected 0:0:644 on ${file}, found ${ownership_and_permissions}."
+    fi
+  else
+    echo "$file does not exist."
   fi
 done
 
@@ -95,8 +107,12 @@ public_files=( \
 
 # Test public file paths
 for file in  "${public_files[@]}"; do
-  ownership_and_permissions="$(docker exec "$le_container_name" stat -c %u:%g:%a "$file")"
-  if [[ "$ownership_and_permissions" != 0:0:644 ]]; then
-    echo "Expected 0:0:644 on ${file}, found ${ownership_and_permissions}."
+  if docker exec "$le_container_name" [ -f "$file" ]; then
+    ownership_and_permissions="$(docker exec "$le_container_name" stat -c %u:%g:%a "$file")"
+    if [[ "$ownership_and_permissions" != 0:0:644 ]]; then
+      echo "Expected 0:0:644 on ${file}, found ${ownership_and_permissions}."
+    fi
+  else
+    echo "$file does not exist."
   fi
 done
