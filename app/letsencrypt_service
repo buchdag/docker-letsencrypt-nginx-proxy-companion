@@ -9,7 +9,9 @@ ACME_CA_URI="${ACME_CA_URI:-https://acme-v02.api.letsencrypt.org/directory}"
 DEFAULT_KEY_SIZE=4096
 REUSE_ACCOUNT_KEYS="$(lc "${REUSE_ACCOUNT_KEYS:-true}")"
 REUSE_PRIVATE_KEYS="$(lc "${REUSE_PRIVATE_KEYS:-false}")"
-MIN_VALIDITY_CAP=7603200
+MAX_CERT_LIFETIME="${MAX_CERT_LIFETIME:-7776000}"
+# MIN_VALIDITY cap set to MAX_CERT_LIFETIME minus two days.
+MIN_VALIDITY_CAP=$(( MAX_CERT_LIFETIME - 172800 ))
 DEFAULT_MIN_VALIDITY=2592000
 
 function create_link {
@@ -229,8 +231,8 @@ function update_certs {
         fi
 
         if [[ "${1}" == "--force-renew" ]]; then
-            # Manually set to highest certificate lifetime given by LE CA
-            params_d_arr+=(--valid_min 7776000)
+            # Defaults to highest certificate lifetime given by Let's Encrypt (7776000 seconds)
+            params_d_arr+=(--valid_min "$MAX_CERT_LIFETIME")
         else
             params_d_arr+=(--valid_min "$min_validity")
         fi
