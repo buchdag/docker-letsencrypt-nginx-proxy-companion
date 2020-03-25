@@ -1,5 +1,5 @@
 os: linux
-dist: trusty
+dist: xenial
 
 language: shell
 
@@ -24,20 +24,11 @@ jobs:
     - env: SETUP=2containers
     - env: SETUP=3containers
     - os: linux
-      dist: xenial
-      env: SETUP=2containers
-    - os: linux
-      dist: xenial
-      env: SETUP=3containers
-    - os: linux
       dist: bionic
       env: SETUP=2containers
     - os: linux
       dist: bionic
       env: SETUP=3containers
-  allow_failures:
-    - dist: bionic
-  fast_finish: true
 
 before_install:
   - test/travis/update-docker-compose.sh
