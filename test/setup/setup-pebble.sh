@@ -57,7 +57,7 @@ setup_pebble_challtestserv() {
     curl -X POST -d '{"host":"lim.it", "addresses":["10.0.0.0"]}' http://pebble-challtestsrv:8055/add-a
 }
 
-build_pebble
+[[ -n "$TRAVIS_CPU_ARCH" && "$TRAVIS_CPU_ARCH" != "amd64" ]] && build_pebble
 setup_pebble
 wait_for_pebble
 setup_pebble_challtestserv

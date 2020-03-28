@@ -18,7 +18,7 @@ build_docker-gen() {
 case $SETUP in
 
   2containers)
-    build_nginx-proxy
+    [[ -n "$TRAVIS_CPU_ARCH" && "$TRAVIS_CPU_ARCH" != "amd64" ]] && build_nginx-proxy
     docker run -d -p 80:80 -p 443:443 \
       --name $NGINX_CONTAINER_NAME \
       --env "DHPARAM_BITS=256" \
@@ -44,7 +44,7 @@ case $SETUP in
       --network acme_net \
       nginx:alpine
 
-    build_docker-gen
+    [[ -n "$TRAVIS_CPU_ARCH" && "$TRAVIS_CPU_ARCH" != "amd64" ]] && build_docker-gen
     docker run -d \
       --name $DOCKER_GEN_CONTAINER_NAME \
       --volumes-from $NGINX_CONTAINER_NAME \

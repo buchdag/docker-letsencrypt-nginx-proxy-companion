@@ -1,3 +1,4 @@
+arch : amd64
 os: linux
 dist: xenial
 
@@ -23,21 +24,29 @@ jobs:
   include:
     - env: SETUP=2containers
     - env: SETUP=3containers
-    - os: linux
+    - dist: bionic
+      env: SETUP=2containers
+    - dist: bionic
+      env: SETUP=3containers
+    - arch: arm64
+      env: SETUP=2containers
+    - arch: arm64
+      env: SETUP=3containers
+    - arch: arm64
       dist: bionic
       env: SETUP=2containers
-    - os: linux
+    - arch: arm64
       dist: bionic
       env: SETUP=3containers
 
-before_install:
-  - test/travis/update-docker-compose.sh
+# before_install:
+#   - test/travis/update-docker-compose.sh
 
 install:
-  - docker build -t "$IMAGE" .
+  - docker build --force-rm --tag "$IMAGE" .
   - docker inspect "$IMAGE"
   - docker run --rm "$IMAGE" simp_le --version
-  - docker run --rm "$IMAGE" simp_le -v --test
+  - docker run --rm "$IMAGE" simp_le --verbose --test
   - docker images
 
 before_script:
