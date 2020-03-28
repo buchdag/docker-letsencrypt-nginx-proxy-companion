@@ -2,9 +2,21 @@
 
 set -e
 
+build_pebble() {
+    local pebble_dir="${TRAVIS_BUILD_DIR}/src/github.com/letsencrypt/pebble"
+    if [[ ! -d "$pebble_dir" ]]; then
+        git clone https://github.com/letsencrypt/pebble.git "$pebble_dir"
+    fi
+    pushd "$pebble_dir"
+    git checkout v2.1.0
+    docker build --force-rm --file ./docker/pebble/linux.Dockerfile --tag letsencrypt/pebble:v2.1.0 .
+    docker build --force-rm --file ./docker/pebble-challtestsrv/linux.Dockerfile --tag letsencrypt/pebble-challtestsrv:v2.1.0 .
+    popd
+}
+
 setup_pebble() {
     docker network create --driver=bridge --subnet=10.30.50.0/24 acme_net
-    curl https://raw.githubusercontent.com/letsencrypt/pebble/master/test/certs/pebble.minica.pem > "${TRAVIS_BUILD_DIR}/pebble.minica.pem"
+    curl https://raw.githubusercontent.com/letsencrypt/pebble/v2.1.0/test/certs/pebble.minica.pem > "${TRAVIS_BUILD_DIR}/pebble.minica.pem"
     cat "${TRAVIS_BUILD_DIR}/pebble.minica.pem"
 
     docker run -d \
@@ -45,6 +57,7 @@ setup_pebble_challtestserv() {
     curl -X POST -d '{"host":"lim.it", "addresses":["10.0.0.0"]}' http://pebble-challtestsrv:8055/add-a
 }
 
+build_pebble
 setup_pebble
 wait_for_pebble
 setup_pebble_challtestserv
