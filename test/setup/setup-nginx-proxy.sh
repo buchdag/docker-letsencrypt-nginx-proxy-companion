@@ -2,9 +2,23 @@
 
 set -e
 
+build_nginx-proxy() {
+  pushd "${TRAVIS_BUILD_DIR}/test/setup"
+  docker build --force-rm --file ./nginx-proxy.Dockerfile --tag jwilder/nginx-proxy .
+  popd
+}
+
+build_docker-gen() {
+  pushd "${TRAVIS_BUILD_DIR}/test/setup"
+  docker build --force-rm --file ./docker-gen.Dockerfile --tag jwilder/docker-gen .
+  popd
+}
+
+
 case $SETUP in
 
   2containers)
+    build_nginx-proxy
     docker run -d -p 80:80 -p 443:443 \
       --name $NGINX_CONTAINER_NAME \
       --env "DHPARAM_BITS=256" \
@@ -30,6 +44,7 @@ case $SETUP in
       --network acme_net \
       nginx:alpine
 
+    build_docker-gen
     docker run -d \
       --name $DOCKER_GEN_CONTAINER_NAME \
       --volumes-from $NGINX_CONTAINER_NAME \
