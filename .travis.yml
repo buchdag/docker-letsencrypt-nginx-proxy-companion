@@ -39,9 +39,6 @@ jobs:
       dist: bionic
       env: SETUP=3containers
 
-# before_install:
-#   - test/travis/update-docker-compose.sh
-
 install:
   - docker build --force-rm --tag "$IMAGE" .
   - docker inspect "$IMAGE"
