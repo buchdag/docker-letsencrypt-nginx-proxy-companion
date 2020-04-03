@@ -14,7 +14,7 @@ fi
 
 containers+=("$NGINX_CONTAINER_NAME")
 [[ $SETUP = "3containers" ]] && containers+=("$DOCKER_GEN_CONTAINER_NAME")
-containers+=("pebble" "challtestserv")
+containers+=("pebble" "pebble-challtestsrv")
 
 for container in "${containers[@]}"; do
   fold_start "$container" "Docker container output for $container"

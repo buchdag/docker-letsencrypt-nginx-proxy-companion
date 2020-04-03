@@ -36,6 +36,8 @@ function cleanup {
   docker exec "$le_container_name" bash -c 'rm -rf /etc/nginx/vhost.d/test.\*'
   # Stop the LE container
   docker stop "$le_container_name" > /dev/null
+  # Remove the custom location configuration file
+  rm "$location_file"
 }
 trap cleanup EXIT
 

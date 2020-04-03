@@ -8,6 +8,13 @@ function get_environment {
   LOCAL_BUILD_DIR="$(cd "$dir/../.." && pwd)"
   export TRAVIS_BUILD_DIR="$LOCAL_BUILD_DIR"
 
+  if [[ "$(uname -m)" == "x86_64" ]]; then
+    LOCAL_CPU_ARCH="amd64"
+  else
+    LOCAL_CPU_ARCH="$(uname -m)"
+  fi
+  export TRAVIS_CPU_ARCH="$LOCAL_CPU_ARCH"
+
   # shellcheck source=/dev/null
   [[ -f "${TRAVIS_BUILD_DIR}/test/local_test_env.sh" ]] && \
     source "${TRAVIS_BUILD_DIR}/test/local_test_env.sh"
@@ -25,6 +32,7 @@ function get_environment {
 
   # Build the array containing domains to add to /etc/hosts
   IFS=',' read -r -a domains <<< "$TEST_DOMAINS"
+  domains+=('pebble' 'pebble-challtestsrv')
 
   if [[ -z $SETUP ]]; then
     while true; do
@@ -59,6 +67,7 @@ case $1 in
     # Prepare the env file that run.sh will source
     cat > "${TRAVIS_BUILD_DIR}/test/local_test_env.sh" <<EOF
 export TRAVIS_BUILD_DIR="$LOCAL_BUILD_DIR"
+export TRAVIS_CPU_ARCH="$LOCAL_CPU_ARCH"
 export NGINX_CONTAINER_NAME="$NGINX_CONTAINER_NAME"
 export DOCKER_GEN_CONTAINER_NAME="$DOCKER_GEN_CONTAINER_NAME"
 export TEST_DOMAINS="$TEST_DOMAINS"
@@ -77,30 +86,29 @@ EOF
     docker pull nginx:alpine
 
     # Prepare the test setup using the setup scripts
-    "${TRAVIS_BUILD_DIR}/test/setup/setup-boulder.sh"
+    "${TRAVIS_BUILD_DIR}/test/setup/setup-pebble.sh"
     "${TRAVIS_BUILD_DIR}/test/setup/setup-nginx-proxy.sh"
     ;;
 
   --teardown)
     get_environment
 
-    # Stop and remove nginx-proxy and (if required) docker-gen
+    # Stop and remove nginx-proxy, docker-gen (if required) and pebble
     for cid in $(docker ps -a --filter "label=com.github.jrcs.letsencrypt_nginx_proxy_companion.test_suite" --format "{{.ID}}"); do
-      docker stop "$cid"
-      docker rm --volumes "$cid"
+      name="$(docker ps --all --filter "id=$cid" --format "{{.Names}}")"
+      echo "Stopping and removing container $name"
+      docker stop "$cid" >/dev/null
+      docker rm --volumes "$cid" >/dev/null
     done
-
-    # Stop and remove boulder
-    docker-compose --project-name 'boulder' \
-      --file "${TRAVIS_BUILD_DIR}/go/src/github.com/letsencrypt/boulder/docker-compose.yml" \
-      down --volumes
+    acme_net_id="$(docker network ls --filter "name=acme_net" --quiet)"
+    [[ -n "${acme_net_id}" ]] && echo "Removing Docker network acme_net" && docker network rm "$acme_net_id" >/dev/null
 
     # Cleanup files created by the setup
     if [[ -n "${TRAVIS_BUILD_DIR// }" ]]; then
       [[ -f "${TRAVIS_BUILD_DIR}/nginx.tmpl" ]]&& rm "${TRAVIS_BUILD_DIR}/nginx.tmpl"
-      rm "${TRAVIS_BUILD_DIR}/test/local_test_env.sh"
-      echo "The ${TRAVIS_BUILD_DIR}/go folder require superuser permission to fully remove."
-      echo "Doing sudo rm -rf in scripts is dangerous, so the folder won't be automatically removed."
+      [[ -f "${TRAVIS_BUILD_DIR}/pebble.minica.pem" ]] && rm "${TRAVIS_BUILD_DIR}/pebble.minica.pem"
+      [[ -f "${TRAVIS_BUILD_DIR}/test/local_test_env.sh" ]] && rm "${TRAVIS_BUILD_DIR}/test/local_test_env.sh"
+      [[ -d "${TRAVIS_BUILD_DIR}/src" ]] && rm -r "${TRAVIS_BUILD_DIR}/src"
     fi
 
     # Remove custom entries to /etc/hosts

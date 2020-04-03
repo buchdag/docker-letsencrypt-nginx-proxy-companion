@@ -23,6 +23,7 @@ setup_pebble() {
         --name pebble \
         --volume "${TRAVIS_BUILD_DIR}/test/setup/pebble-config.json:/test/config/pebble-config.json" \
         --env PEBBLE_WFE_NONCEREJECT=0 \
+        --label com.github.jrcs.letsencrypt_nginx_proxy_companion.test_suite \
         --network acme_net \
         --ip="10.30.50.2" \
         --publish 14000:14000 \
@@ -30,7 +31,8 @@ setup_pebble() {
         pebble -config /test/config/pebble-config.json -dnsserver 10.30.50.3:8053
 
     docker run -d \
-        --name challtestserv \
+        --name pebble-challtestsrv \
+        --label com.github.jrcs.letsencrypt_nginx_proxy_companion.test_suite \
         --network acme_net \
         --ip="10.30.50.3" \
         --publish 8055:8055 \
@@ -39,8 +41,9 @@ setup_pebble() {
 }
 
 wait_for_pebble() {
+    docker exec pebble ash -c "apk add --update --no-cache curl >/dev/null 2>&1"
     for endpoint in 'https://pebble:14000/dir' 'http://pebble-challtestsrv:8055'; do
-        while ! curl -k "$endpoint" >/dev/null 2>&1; do
+        until docker exec pebble ash -c "curl -k ${endpoint:?} >/dev/null 2>&1"; do
             if [ $((i * 5)) -gt $((5 * 60)) ]; then
                 echo "$endpoint was not available under 5 minutes, timing out."
                 exit 1
