@@ -1,13 +1,24 @@
 #!/bin/bash
 
-## Test for single domain certificates.
+## Test for networks segregation.
+
+case $ACME_CA in
+  pebble)
+    desired_network='acme_net'
+  ;;
+  boulder)
+    desired_network='boulder_bluenet'
+  ;;
+  *)
+    echo "$0 $ACME_CA: invalid option."
+    exit 1
+esac
 
 if [[ -z $GITHUB_ACTIONS ]]; then
   le_container_name="$(basename "${0%/*}")_$(date "+%Y-%m-%d_%H.%M.%S")"
 else
   le_container_name="$(basename "${0%/*}")"
 fi
-desired_network="boulder_bluenet"
 run_le_container "${1:?}" "$le_container_name" "--env NETWORK_SCOPE=$desired_network"
 
 # Create the $domains array from comma separated domains in TEST_DOMAINS.
